@@ -141,87 +141,23 @@ erDiagram
 
 ### 2.3 Модель процесса
 
-```bpmn
-<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
-  <bpmn:process id="EmailProcessing" name="Email Processing Flow">
-    <!-- Входящее письмо -->
-    <bpmn:startEvent id="StartEvent" name="Новое письмо получено">
-      <bpmn:outgoing>Flow1</bpmn:outgoing>
-    </bpmn:startEvent>
+flowchart TD
+    StartEvent[Новое письмо получено] --> Gateway1{Тип отправителя?}
     
-    <!-- Проверка источника -->
-    <bpmn:exclusiveGateway id="Gateway1" name="Тип отправителя?">
-      <bpmn:incoming>Flow1</bpmn:incoming>
-      <bpmn:outgoing>Flow2</bpmn:outgoing>
-      <bpmn:outgoing>Flow3</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
+    Gateway1 -->|Service Desk| Task1[Обработка Service Desk]
+    Gateway1 -->|Пользователь| Task2[Обработка пользователя]
     
-    <!-- Service Desk -->
-    <bpmn:serviceTask id="Task1" name="Обработка Service Desk">
-      <bpmn:incoming>Flow2</bpmn:incoming>
-      <bpmn:outgoing>Flow4</bpmn:outgoing>
-    </bpmn:serviceTask>
+    Task1 --> Gateway2{Инцидент существует?}
+    Task2 --> Gateway2
     
-    <!-- Обычный пользователь -->
-    <bpmn:serviceTask id="Task2" name="Обработка пользователя">
-      <bpmn:incoming>Flow3</bpmn:incoming>
-      <bpmn:outgoing>Flow5</bpmn:outgoing>
-    </bpmn:serviceTask>
+    Gateway2 -->|Да| Task4[Обновить инцидент]
+    Gateway2 -->|Нет| Task3[Создать инцидент в R-Vision]
     
-    <!-- Поиск инцидента -->
-    <bpmn:exclusiveGateway id="Gateway2" name="Инцидент существует?">
-      <bpmn:incoming>Flow4</bpmn:incoming>
-      <bpmn:incoming>Flow5</bpmn:incoming>
-      <bpmn:outgoing>Flow6</bpmn:outgoing>
-      <bpmn:outgoing>Flow7</bpmn:outgoing>
-    </bpmn:exclusiveGateway>
+    Task3 --> Task5[Сохранить в цепочку сообщений]
+    Task4 --> Task5
     
-    <!-- Создание инцидента -->
-    <bpmn:serviceTask id="Task3" name="Создать инцидент в R-Vision">
-      <bpmn:incoming>Flow7</bpmn:incoming>
-      <bpmn:outgoing>Flow8</bpmn:outgoing>
-    </bpmn:serviceTask>
-    
-    <!-- Обновление инцидента -->
-    <bpmn:serviceTask id="Task4" name="Обновить инцидент">
-      <bpmn:incoming>Flow6</bpmn:incoming>
-      <bpmn:outgoing>Flow9</bpmn:outgoing>
-    </bpmn:serviceTask>
-    
-    <!-- Сохранение в цепочку -->
-    <bpmn:serviceTask id="Task5" name="Сохранить в цепочку сообщений">
-      <bpmn:incoming>Flow8</bpmn:incoming>
-      <bpmn:incoming>Flow9</bpmn:incoming>
-      <bpmn:outgoing>Flow10</bpmn:outgoing>
-    </bpmn:serviceTask>
-    
-    <!-- Архивирование -->
-    <bpmn:serviceTask id="Task6" name="Архивировать письмо">
-      <bpmn:incoming>Flow10</bpmn:incoming>
-      <bpmn:outgoing>Flow11</bpmn:outgoing>
-    </bpmn:serviceTask>
-    
-    <!-- Конец -->
-    <bpmn:endEvent id="EndEvent" name="Обработка завершена">
-      <bpmn:incoming>Flow11</bpmn:incoming>
-    </bpmn:endEvent>
-    
-    <!-- Потоки -->
-    <bpmn:sequenceFlow id="Flow1" sourceRef="StartEvent" targetRef="Gateway1"/>
-    <bpmn:sequenceFlow id="Flow2" name="Service Desk" sourceRef="Gateway1" targetRef="Task1"/>
-    <bpmn:sequenceFlow id="Flow3" name="Пользователь" sourceRef="Gateway1" targetRef="Task2"/>
-    <bpmn:sequenceFlow id="Flow4" sourceRef="Task1" targetRef="Gateway2"/>
-    <bpmn:sequenceFlow id="Flow5" sourceRef="Task2" targetRef="Gateway2"/>
-    <bpmn:sequenceFlow id="Flow6" name="Да" sourceRef="Gateway2" targetRef="Task4"/>
-    <bpmn:sequenceFlow id="Flow7" name="Нет" sourceRef="Gateway2" targetRef="Task3"/>
-    <bpmn:sequenceFlow id="Flow8" sourceRef="Task3" targetRef="Task5"/>
-    <bpmn:sequenceFlow id="Flow9" sourceRef="Task4" targetRef="Task5"/>
-    <bpmn:sequenceFlow id="Flow10" sourceRef="Task5" targetRef="Task6"/>
-    <bpmn:sequenceFlow id="Flow11" sourceRef="Task6" targetRef="EndEvent"/>
-  </bpmn:process>
-</bpmn:definitions>
-```
+    Task5 --> Task6[Архивировать письмо]
+    Task6 --> EndEvent[Обработка завершена]
 
 ### 2.4 Описание нормализации
 
